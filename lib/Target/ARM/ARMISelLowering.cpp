@@ -3019,6 +3019,8 @@ ARMTargetLowering::LowerFormalArguments(SDValue Chain,
     VarArgStyleRegisters(CCInfo, DAG, dl, Chain,
                          CCInfo.getNextStackOffset());
 
+  AFI->setArgumentStackSize(CCInfo.getNextStackOffset());
+
   return Chain;
 }
 
