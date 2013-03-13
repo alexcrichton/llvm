@@ -51,6 +51,9 @@ public:
 
   bool isTargetELF() const { return TargetTriple.isOSBinFormatELF(); }
   bool isTargetLinux() const { return TargetTriple.isOSLinux(); }
+  bool isTargetAndroid() const {
+    return TargetTriple.getEnvironment() == Triple::Android;
+  }
 
   bool hasNEON() const { return HasNEON; }
 
