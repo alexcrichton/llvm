@@ -2708,6 +2708,8 @@ MipsTargetLowering::LowerFormalArguments(SDValue Chain,
                         &OutChains[0], OutChains.size());
   }
 
+  MipsFI->setArgumentStackSize(CCInfo.getNextStackOffset());
+
   return Chain;
 }
 
