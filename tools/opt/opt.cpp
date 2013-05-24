@@ -523,6 +523,7 @@ static TargetOptions GetTargetOptions() {
   Options.PositionIndependentExecutable = EnablePIE;
   Options.EnableSegmentedStacks = SegmentedStacks;
   Options.UseInitArray = UseInitArray;
+  Options.FixedStackSegmentSize = FixedStackSegmentSize;
   return Options;
 }
 
