@@ -131,8 +131,14 @@ namespace {
       AddDefaultPred(MIB);
 
       // Fix the GOT address by adding pc.
-      BuildMI(FirstMBB, MBBI, DL, TII.get(ARM::tPICADD), GlobalBaseReg)
-          .addReg(GlobalBaseReg).addImm(ARMPCLabelIndex);
+      Opc = TM->getSubtarget<ARMSubtarget>().isThumb2() ? ARM::tPICADD
+                                                        : ARM::PICADD;
+      MIB = BuildMI(FirstMBB, MBBI, DL, TII.get(Opc), GlobalBaseReg)
+                .addReg(GlobalBaseReg)
+                .addImm(ARMPCLabelIndex);
+      if (Opc == ARM::PICADD)
+        AddDefaultPred(MIB);
+
 
       return true;
     }
