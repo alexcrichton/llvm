@@ -39,6 +39,8 @@ EHPersonality llvm::classifyEHPersonality(const Value *Pers) {
     .Case("__CxxFrameHandler3",    EHPersonality::MSVC_CXX)
     .Case("ProcessCLRException",   EHPersonality::CoreCLR)
     .Case("rust_eh_personality",   EHPersonality::Rust)
+    .Case("rust_seh32_personality",EHPersonality::MSVC_X86SEH)
+    .Case("rust_seh64_personality",EHPersonality::MSVC_Win64SEH)
     .Default(EHPersonality::Unknown);
 }
 
@@ -67,10 +69,25 @@ EHPersonality llvm::getDefaultEHPersonality(const Triple &T) {
 
 bool llvm::canSimplifyInvokeNoUnwind(const Function *F) {
   EHPersonality Personality = classifyEHPersonality(F->getPersonalityFn());
+
   // We can't simplify any invokes to nounwind functions if the personality
   // function wants to catch asynch exceptions.  The nounwind attribute only
   // implies that the function does not throw synchronous exceptions.
-  return !isAsynchronousEHPersonality(Personality);
+  if (!isAsynchronousEHPersonality(Personality))
+    return true;
+
+  // Currently the Rust-related personalities on MSVC are classified as
+  // asynchronous personalities for ease of codegen and minimizing impact in
+  // LLVM's codebase, but Rust-related exceptions aren't actually asynchronous
+  // which means we can actually simplify invocations of nounwind functions.
+  const Value *Pers = F->getPersonalityFn();
+  const Function *PersF =
+      Pers ? dyn_cast<Function>(Pers->stripPointerCasts()) : nullptr;
+  auto Name = PersF ? PersF->getName() : "";
+  if (Name.startswith("rust"))
+      return true;
+
+  return false;
 }
 
 DenseMap<BasicBlock *, ColorVector> llvm::colorEHFunclets(Function &F) {
